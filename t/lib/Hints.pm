@@ -1,4 +1,4 @@
-package t::Hints;
+package Hints;
 
 use warnings;
 use strict;

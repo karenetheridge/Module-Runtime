@@ -5,10 +5,12 @@ use Test::More tests => 37;
 
 BEGIN { use_ok "Module::Runtime", qw(use_module); }
 
+use lib 't/lib';
+
 my $result;
 
 # a module that doesn't exist
-$result = eval { use_module("t::NotExist") };
+$result = eval { use_module("NotExist") };
 like($@, qr/^Can't locate /);
 
 # a module that's already loaded
@@ -17,17 +19,17 @@ is($@, "");
 is($result, "Test::More");
 
 # a module that we'll load now
-$result = eval { use_module("t::Simple") };
+$result = eval { use_module("Simple") };
 is($@, "");
-is($result, "t::Simple");
+is($result, "Simple");
 
 # re-requiring the module that we just loaded
-$result = eval { use_module("t::Simple") };
+$result = eval { use_module("Simple") };
 is($@, "");
-is($result, "t::Simple");
+is($result, "Simple");
 
 # module file scope sees scalar context regardless of calling context
-$result = eval { use_module("t::Context"); 1 };
+$result = eval { use_module("Context"); 1 };
 is $@, "";
 
 # lexical hints don't leak through
@@ -47,10 +49,10 @@ SKIP: {
 	$^H{"Module::Runtime/test_a"} = 1;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	use_module("t::Hints");
+	use_module("Hints");
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	t::Hints->import;
+	Hints->import;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, 1;
 	eval q{
@@ -65,15 +67,15 @@ SKIP: {
 }
 
 # broken module is visibly broken when re-required
-eval { use_module("t::Break") };
+eval { use_module("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
-eval { use_module("t::Break") };
+eval { use_module("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
 
 # no extra eval frame
 SKIP: {
 	skip "core bug makes this test crash", 2 if "$]" < 5.006001;
-	sub eval_test () { use_module("t::Eval") }
+	sub eval_test () { use_module("Eval") }
 	eval_test();
 }
 
@@ -88,24 +90,24 @@ like($@, qr/^Module::Runtime version /);
 
 # make sure any version argument gets passed through
 my @version_calls;
-sub t::HasVersion::VERSION {
+sub HasVersion::VERSION {
 	push @version_calls, [@_];
 }
-$INC{"t/HasVersion.pm"} = 1;
-eval { use_module("t::HasVersion") };
+$INC{"HasVersion.pm"} = 1;
+eval { use_module("HasVersion") };
 is $@, "";
 is_deeply \@version_calls, [];
 @version_calls = ();
-eval { use_module("t::HasVersion", 2) };
+eval { use_module("HasVersion", 2) };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion",2]];
+is_deeply \@version_calls, [["HasVersion",2]];
 @version_calls = ();
-eval { use_module("t::HasVersion", "wibble") };
+eval { use_module("HasVersion", "wibble") };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion","wibble"]];
+is_deeply \@version_calls, [["HasVersion","wibble"]];
 @version_calls = ();
-eval { use_module("t::HasVersion", undef) };
+eval { use_module("HasVersion", undef) };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion",undef]];
+is_deeply \@version_calls, [["HasVersion",undef]];
 
 1;

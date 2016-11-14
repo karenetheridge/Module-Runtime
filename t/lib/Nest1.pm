@@ -1,4 +1,4 @@
-package t::Nest1;
+package Nest1;
 
 { use 5.006; }
 use warnings;
@@ -7,6 +7,6 @@ use Module::Runtime qw(require_module);
 
 our $VERSION = 1;
 
-require_module("t::Nested");
+require_module("Nested");
 
-"t::Nest1 return";
+"Nest1 return";

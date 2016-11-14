@@ -5,12 +5,14 @@ use Test::More tests => 42;
 
 BEGIN { use_ok "Module::Runtime", qw(use_package_optimistically); }
 
+use lib 't/lib';
+
 my $result;
 
 # a module that doesn't exist
-$result = eval { use_package_optimistically("t::NotExist") };
+$result = eval { use_package_optimistically("NotExist") };
 is $@, "";
-is $result, "t::NotExist";
+is $result, "NotExist";
 
 # a module that's already loaded
 $result = eval { use_package_optimistically("Test::More") };
@@ -18,11 +20,11 @@ is $@, "";
 is $result, "Test::More";
 
 # a module that we'll load now
-$result = eval { use_package_optimistically("t::Simple") };
+$result = eval { use_package_optimistically("Simple") };
 is $@, "";
-is $result, "t::Simple";
+is $result, "Simple";
 no strict "refs";
-ok defined(${"t::Simple::VERSION"});
+ok defined(${"Simple::VERSION"});
 
 # lexical hints don't leak through
 my $have_runtime_hint_hash = "$]" >= 5.009004;
@@ -41,10 +43,10 @@ SKIP: {
 	$^H{"Module::Runtime/test_a"} = 1;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	use_package_optimistically("t::Hints");
+	use_package_optimistically("Hints");
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	t::Hints->import;
+	Hints->import;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, 1;
 	eval q{
@@ -59,23 +61,23 @@ SKIP: {
 }
 
 # broken module is visibly broken when re-required
-eval { use_package_optimistically("t::Break") };
+eval { use_package_optimistically("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
-eval { use_package_optimistically("t::Break") };
+eval { use_package_optimistically("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
 
 # module broken by virtue of trying to non-optimistically load a
 # non-existent module via "use"
-eval { use_package_optimistically("t::Nest0") };
+eval { use_package_optimistically("Nest0") };
 like $@, qr/\ACan't locate /;
-eval { use_package_optimistically("t::Nest0") };
+eval { use_package_optimistically("Nest0") };
 like $@, qr/\A(?:Can't locate |Attempt to reload )/;
 
 # module broken by virtue of trying to non-optimistically load a
 # non-existent module via require_module()
-eval { use_package_optimistically("t::Nest1") };
+eval { use_package_optimistically("Nest1") };
 like $@, qr/\ACan't locate /;
-eval { use_package_optimistically("t::Nest1") };
+eval { use_package_optimistically("Nest1") };
 like $@, qr/\A(?:Can't locate |Attempt to reload )/;
 
 # successful version check
@@ -88,33 +90,33 @@ $result = eval { use_package_optimistically("Module::Runtime", 999) };
 like $@, qr/^Module::Runtime version /;
 
 # even load module if $VERSION already set, unlike older behaviour
-$t::Context::VERSION = undef;
-$result = eval { use_package_optimistically("t::Context") };
+$Context::VERSION = undef;
+$result = eval { use_package_optimistically("Context") };
 is $@, "";
-is $result, "t::Context";
-ok defined($t::Context::VERSION);
-ok $INC{"t/Context.pm"};
+is $result, "Context";
+ok defined($Context::VERSION);
+ok $INC{"Context.pm"};
 
 # make sure any version argument gets passed through
 my @version_calls;
-sub t::HasVersion::VERSION {
+sub HasVersion::VERSION {
 	push @version_calls, [@_];
 }
-$INC{"t/HasVersion.pm"} = 1;
-eval { use_package_optimistically("t::HasVersion") };
+$INC{"HasVersion.pm"} = 1;
+eval { use_package_optimistically("HasVersion") };
 is $@, "";
 is_deeply \@version_calls, [];
 @version_calls = ();
-eval { use_package_optimistically("t::HasVersion", 2) };
+eval { use_package_optimistically("HasVersion", 2) };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion",2]];
+is_deeply \@version_calls, [["HasVersion",2]];
 @version_calls = ();
-eval { use_package_optimistically("t::HasVersion", "wibble") };
+eval { use_package_optimistically("HasVersion", "wibble") };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion","wibble"]];
+is_deeply \@version_calls, [["HasVersion","wibble"]];
 @version_calls = ();
-eval { use_package_optimistically("t::HasVersion", undef) };
+eval { use_package_optimistically("HasVersion", undef) };
 is $@, "";
-is_deeply \@version_calls, [["t::HasVersion",undef]];
+is_deeply \@version_calls, [["HasVersion",undef]];
 
 1;

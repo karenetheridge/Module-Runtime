@@ -5,6 +5,8 @@ use Test::More tests => 26;
 
 BEGIN { use_ok "Module::Runtime", qw(require_module); }
 
+use lib 't/lib';
+
 my($result, $err);
 
 sub test_require_module($) {
@@ -14,7 +16,7 @@ sub test_require_module($) {
 }
 
 # a module that doesn't exist
-test_require_module("t::NotExist");
+test_require_module("NotExist");
 like($err, qr/^Can't locate /);
 
 # a module that's already loaded
@@ -23,17 +25,17 @@ is($err, "");
 is($result, 1);
 
 # a module that we'll load now
-test_require_module("t::Simple");
+test_require_module("Simple");
 is($err, "");
-is($result, "t::Simple return");
+is($result, "Simple return");
 
 # re-requiring the module that we just loaded
-test_require_module("t::Simple");
+test_require_module("Simple");
 is($err, "");
 is($result, 1);
 
 # module file scope sees scalar context regardless of calling context
-eval { require_module("t::Context"); 1 };
+eval { require_module("Context"); 1 };
 is $@, "";
 
 # lexical hints don't leak through
@@ -53,10 +55,10 @@ SKIP: {
 	$^H{"Module::Runtime/test_a"} = 1;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	require_module("t::Hints");
+	require_module("Hints");
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, undef;
-	t::Hints->import;
+	Hints->import;
 	is $^H{"Module::Runtime/test_a"}, 1;
 	is $^H{"Module::Runtime/test_b"}, 1;
 	eval q{
@@ -71,15 +73,15 @@ SKIP: {
 }
 
 # broken module is visibly broken when re-required
-eval { require_module("t::Break") };
+eval { require_module("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
-eval { require_module("t::Break") };
+eval { require_module("Break") };
 like $@, qr/\A(?:broken |Attempt to reload )/;
 
 # no extra eval frame
 SKIP: {
 	skip "core bug makes this test crash", 2 if "$]" < 5.006001;
-	sub eval_test () { require_module("t::Eval") }
+	sub eval_test () { require_module("Eval") }
 	eval_test();
 }
 

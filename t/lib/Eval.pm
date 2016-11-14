@@ -1,4 +1,4 @@
-package t::Eval;
+package Eval;
 
 use warnings;
 use strict;
@@ -23,7 +23,7 @@ sub _ok_no_eval() {
 		my $type = $sub ne "(eval)" ? "subroutine" :
 			$c[7] ? "require" :
 			defined($c[6]) ? "string eval" : "block eval";
-		if($type =~ /eval/ && !($lastsub eq "t::Eval::BEGIN" &&
+		if($type =~ /eval/ && !($lastsub eq "Eval::BEGIN" &&
 					$type eq "block eval")) {
 			ok 0;
 			diag "have $type between module and main program";

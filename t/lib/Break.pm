@@ -1,4 +1,4 @@
-package t::Break;
+package Break;
 
 { use 5.006; }
 use warnings;
